@@ -1,173 +1,97 @@
 // ==UserScript==
-// @name         Rank Request Add-ons
+// @name         ScoreSaber Rank Request Add-ons
 // @namespace    https://scoresaber.com/ranking/requests
-// @version      1.0.0
+// @version      2.0.0
 // @description  Simple features for ScoreSaber ranking
-// @author       eZconfirmed
-// @match        https://scoresaber.com/ranking/requests
-// @updateURL    https://github.com/eZconfirmed/rank-request-addon/raw/master/main.user.js
-// @downloadURL  https://github.com/eZconfirmed/rank-request-addon/raw/master/main.user.js
+// @author       Dylan Nicastro
+// @match        https://scoresaber.com/*
+// @updateURL    https://github.com/dylanNicastro/ss-ranking-addon/raw/master/main.user.js
+// @downloadURL  https://github.com/dylanNicastro/ss-ranking-addon/raw/master/main.user.js
 // @icon         https://scoresaber.com/images/logo.svg
 // @grant        none
+// @require      https://code.jquery.com/jquery-3.7.1.min.js
 // ==/UserScript==
 
-function wait(func) {
-    setTimeout(func, 500);
-}
+(function() {
+    'use strict';
+    let isOnRequestsPage = false;
+    let downvotesHidden = false;
 
-
-function tableChangeJ(number) {
-  var tableLen = document.getElementsByTagName("tbody")[number].rows.length;
-  for (var i = 0; i < tableLen; i++)
-  {
-  var a = document.getElementsByTagName("tbody")[number].getElementsByClassName("table-item")[i];
-      if (a == undefined)
-      {
-      }
-      else if (parseInt(a.getElementsByClassName("rt_downvotes")[0].innerHTML) > 0)
-      {
-          a.setAttribute("id", "hideElement");
-      }
-      else if (parseInt(a.getElementsByClassName("qat_downvotes")[0].innerHTML) > 0)
-      {
-          a.setAttribute("id", "hideElement");
-      }
-
-  }
-   var newTableLen = document.getElementsByTagName("tbody")[number].rows.length;
-  for (var j = 0; j < newTableLen; j++)
-  {
-          var b = document.getElementsByTagName("tbody")[number].getElementsByClassName("table-item")[j];
-      if (Math.ceil(3-(parseInt(b.getElementsByClassName("rt_upvotes")[0].innerHTML) / (parseInt(b.getElementsByClassName("diffs_created_at")[0].getElementsByTagName("b")[0].innerHTML)))) <= 0)
-      {
-          b.getElementsByClassName("song-info")[0].innerHTML = b.getElementsByClassName("song-info")[0].innerHTML + "<p><b>No votes required! Ready for qualification!</b></p>";
-      }
-      else
-      {
-         b.getElementsByClassName("song-info")[0].innerHTML = b.getElementsByClassName("song-info")[0].innerHTML + "<p>" + Math.ceil(3-(parseInt(b.getElementsByClassName("rt_upvotes")[0].innerHTML) / (parseInt(b.getElementsByClassName("diffs_created_at")[0].getElementsByTagName("b")[0].innerHTML)))) + " RT member(s) required</p>";
-      }
-  }
-}
-
-function toggle(number) {
-    var tableLen = document.getElementsByTagName("tbody")[number].rows.length;
-    for (var i = 0; i < tableLen; i++)
-    {
-        if (parseInt(document.getElementsByTagName("tbody")[number].getElementsByClassName("table-item")[i].getElementsByClassName("rt_downvotes")[0].innerHTML) > 0)
-      {
-          document.getElementsByTagName("tbody")[number].getElementsByClassName("table-item")[i].setAttribute("id", "hideElement");
-      }
-      else if (parseInt(document.getElementsByTagName("tbody")[number].getElementsByClassName("table-item")[i].getElementsByClassName("qat_downvotes")[0].innerHTML) > 0)
-      {
-          document.getElementsByTagName("tbody")[number].getElementsByClassName("table-item")[i].setAttribute("id", "hideElement");
-      }
-
-
-        if(document.getElementsByTagName("tbody")[number].getElementsByClassName("table-item")[i].style.display == "none" && document.getElementsByTagName("tbody")[number].getElementsByClassName("table-item")[i].id == "hideElement")
-        {
-            document.getElementsByTagName("tbody")[number].getElementsByClassName("table-item")[i].style.display = "";
-        }
-       else if (document.getElementsByTagName("tbody")[number].getElementsByClassName("table-item")[i].style.display == "" && document.getElementsByTagName("tbody")[number].getElementsByClassName("table-item")[i].id == "hideElement")
-        {
-            document.getElementsByTagName("tbody")[number].getElementsByClassName("table-item")[i].style.display = "none";
+    function addHideButton() {
+        if ($(".downvote-toggle").length === 0) {
+            $(".section").append('<button class="downvote-toggle button is-small svelte-15752pe"><span class="icon"><i class="fas fa-list svelte-15752pe"></i></span> <span>Toggle Downvoted Maps</span></button>');
+            $(".downvote-toggle").on('click', toggleDownvoted);
         }
     }
-}
 
-function buttonIdToggle() {
-    if (document.getElementsByClassName("section")[0].getElementsByTagName("button")[2].id == "downvotesShown")
-    {
-        document.getElementsByClassName("section")[0].getElementsByTagName("button")[2].id = "downvotesHidden";
-        document.getElementsByClassName("section")[0].getElementsByTagName("button")[2].getElementsByTagName("span")[0].innerHTML = "Show Downvoted Maps";
-        toggle(0);
-        toggle(1);
+    function modifyRequests() {
+        $(".table-item").each(function() {
+            if ($(this).find(".status-message").length === 0) {
+                let rtUpvotes = parseInt($(this).find(".rt_upvotes").text());
+                let difficultyCount = parseInt($(this).find(".diffs_created_at b").first().text());
+                let required = 3 - Math.floor(rtUpvotes/difficultyCount);
+                let msg = required === 0 ? "<b>No votes required! Ready for qualification!</b>" : `${required} RT member${required === 1 ? "" : "s"} required`;
+                $(this).find(".song-info").append(`<p class='status-message'>${msg}</p>`);
+            }
+        });
     }
-    else
-    {
-        document.getElementsByClassName("section")[0].getElementsByTagName("button")[2].id = "downvotesShown";
-        document.getElementsByClassName("section")[0].getElementsByTagName("button")[2].getElementsByTagName("span")[0].innerHTML = "Hide Downvoted Maps";
-        toggle(0);
-        toggle(1);
+
+    function toggleDownvoted() {
+        $(".table-item").each(function() {
+            if (parseInt($(this).find(".rt_downvotes").text()) > 0 ||
+                parseInt($(this).find(".qat_downvotes").text()) > 0) {
+                if (downvotesHidden) $(this).show();
+                else $(this).hide();
+            }
+        });
+        downvotesHidden = !downvotesHidden;
     }
-}
 
+    function checkDownvotedAreHidden() {
+        if (!downvotesHidden) return;
+        $(".table-item").each(function() {
+            if (parseInt($(this).find(".rt_downvotes").text()) > 0 ||
+                parseInt($(this).find(".qat_downvotes").text()) > 0) {
+                $(this).hide();
+            }
+        });
+    }
 
-
-function addButton() {
-    document.getElementsByClassName("section")[0].getElementsByTagName("button")[1].insertAdjacentElement("afterend", document.createElement("button"));
-    document.getElementsByClassName("section")[0].getElementsByTagName("button")[2].setAttribute("id", "downvotesShown");
-    document.getElementById("downvotesShown").style.marginLeft = "4px";
-    document.getElementById("downvotesShown").setAttribute("class", "button is-small svelte-15752pe");
-    document.getElementById("downvotesShown").appendChild(document.createElement("span")).appendChild(document.createTextNode("Hide Downvoted Maps"));
-}
-
-wait(addButton);
-
-function addEvent() {
-document.getElementById("downvotesShown").addEventListener("click", buttonIdToggle);
-}
-
-wait(addEvent);
-
-function call0() {
-    tableChangeJ(0);
-}
-wait(call0);
-
-function call1() {
-    tableChangeJ(1);
-}
-
-function tableChange3() {
-document.getElementsByClassName("button is-small")[0].onclick = function() {wait(call1())};
-}
-
-function bigListCheck() {
-    if (document.getElementsByTagName("tbody")[1] == undefined)
-    {}
-    else {
-    var tableLen = document.getElementsByTagName("tbody")[1].rows.length;
-    for (var i = 0; i < tableLen; i++)
-    {
-        if (parseInt(document.getElementsByTagName("tbody")[1].getElementsByClassName("table-item")[i].getElementsByClassName("rt_downvotes")[0].innerHTML) > 0)
-      {
-          document.getElementsByTagName("tbody")[1].getElementsByClassName("table-item")[i].setAttribute("id", "hideElement");
-          console.log(i + document.getElementsByTagName("tbody")[1].getElementsByClassName("table-item")[i]);
-      }
-      else if (parseInt(document.getElementsByTagName("tbody")[1].getElementsByClassName("table-item")[i].getElementsByClassName("qat_downvotes")[0].innerHTML) > 0)
-      {
-          document.getElementsByTagName("tbody")[1].getElementsByClassName("table-item")[i].setAttribute("id", "hideElement");
-          console.log(i + document.getElementsByTagName("tbody")[1].getElementsByClassName("table-item")[i]);
-      }
-
-
-        if((document.getElementsByClassName("section")[0].getElementsByTagName("button")[2].id == "downvotesHidden" || document.getElementsByClassName("section")[0].getElementsByTagName("button")[2].id == "false") && document.getElementsByTagName("tbody")[1].getElementsByClassName("table-item")[i].id == "hideElement")
-        {
-            console.log(document.getElementsByClassName("section")[0].getElementsByTagName("button")[2].id + " hidden");
-            document.getElementsByTagName("tbody")[1].getElementsByClassName("table-item")[i].style.display = "none";
+    function initializeRequestsPage() {
+        if (window.requestsInterval) {
+            clearInterval(window.requestsInterval);
         }
-       else if ((document.getElementsByClassName("section")[0].getElementsByTagName("button")[2].id == "downvotesHidden" || document.getElementsByClassName("section")[0].getElementsByTagName("button")[2].id == "false") && document.getElementsByTagName("tbody")[1].getElementsByClassName("table-item")[i].id == "hideElement")
-        {
-            console.log(document.getElementsByClassName("section")[0].getElementsByTagName("button")[2].id + " shown");
-            document.getElementsByTagName("tbody")[1].getElementsByClassName("table-item")[i].style.display = "";
+
+        window.requestsInterval = setInterval(() => {
+            let items = $(".table-item");
+            if (items.length > 0) {
+                modifyRequests();
+                addHideButton();
+                checkDownvotedAreHidden();
+            }
+        }, 500);
+    }
+
+    // Thank you Claude AI for writing this part
+    function checkCurrentPage() {
+        const isRequestPage = window.location.pathname === '/ranking/requests';
+
+        if (isRequestPage && !isOnRequestsPage) {
+            isOnRequestsPage = true;
+            initializeRequestsPage();
+        } else if (!isRequestPage && isOnRequestsPage) {
+            isOnRequestsPage = false;
+            if (window.requestsInterval) {
+                clearInterval(window.requestsInterval);
+            }
         }
-      var b = document.getElementsByTagName("tbody")[1].getElementsByClassName("table-item")[i];
-      if (Math.ceil(3-(parseInt(b.getElementsByClassName("rt_upvotes")[0].innerHTML) / (parseInt(b.getElementsByClassName("diffs_created_at")[0].getElementsByTagName("b")[0].innerHTML)))) <= 0)
-      {
-          b.getElementsByClassName("song-info")[0].innerHTML = b.getElementsByClassName("song-info")[0].innerHTML + "<p><b>No votes required! Ready for qualification!</b></p>";
-      }
-      else
-      {
-         b.getElementsByClassName("song-info")[0].innerHTML = b.getElementsByClassName("song-info")[0].innerHTML + "<p>" + Math.ceil(3-(parseInt(b.getElementsByClassName("rt_upvotes")[0].innerHTML) / (parseInt(b.getElementsByClassName("diffs_created_at")[0].getElementsByTagName("b")[0].innerHTML)))) + " RT member(s) required</p>";
-      }
     }
-    }
-}
-
-function addEvent2() {
-document.getElementsByClassName("button is-small")[0].addEventListener("click", bigListCheck);
-}
-
-wait(addEvent2);
-
-//wait(tableChange3);
+    const observer = new MutationObserver(() => {
+        checkCurrentPage();
+    });
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+    checkCurrentPage();
+})();
