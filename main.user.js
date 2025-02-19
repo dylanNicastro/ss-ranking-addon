@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScoreSaber Rank Request Add-ons
 // @namespace    https://scoresaber.com/ranking/requests
-// @version      2.0.0
+// @version      2.1.0
 // @description  Simple features for ScoreSaber ranking
 // @author       Dylan Nicastro
 // @match        https://scoresaber.com/*
