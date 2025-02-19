@@ -70,7 +70,7 @@
         }
 
         window.requestsInterval = setInterval(() => {
-            let items = $(".table-item");
+            let items = $(".level-item");
             if (items.length > 0) {
                 modifyRequests();
                 addHideButton();
