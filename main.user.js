@@ -57,6 +57,13 @@
         });
     }
 
+    async function modifyCounter() {
+        $.get("https://scoresaber.com/api/leaderboards?qualified=true&unique=true", function(res) {
+            $(".level-item").eq(1).find(".heading").text("Qualified Maps");
+            $(".level-item").eq(1).find(".title").text(res.leaderboards.length);
+        });
+    }
+
     function initializeRequestsPage() {
         if (window.requestsInterval) {
             clearInterval(window.requestsInterval);
@@ -68,6 +75,7 @@
                 modifyRequests();
                 addHideButton();
                 checkDownvotedAreHidden();
+                modifyCounter();
             }
         }, 500);
     }
