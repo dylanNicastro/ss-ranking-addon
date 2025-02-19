@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScoreSaber Rank Request Add-ons
 // @namespace    https://scoresaber.com/ranking/requests
-// @version      2.1.0
+// @version      2.1.2
 // @description  Simple features for ScoreSaber ranking
 // @author       Dylan Nicastro
 // @match        https://scoresaber.com/*
@@ -61,6 +61,11 @@
         $.get("https://scoresaber.com/api/leaderboards?qualified=true&unique=true", function(res) {
             $(".level-item").eq(1).find(".heading").text("Qualified Maps");
             $(".level-item").eq(1).find(".title").text(res.leaderboards.length);
+            $(".level-item").eq(1).find("div").css("cursor", "pointer");
+            $(".level-item").eq(1).find("div").click(function() {
+                window.open("https://scoresaber.com/leaderboards?page=1&verified=1&ranked=0&qualified=1&minStar=0&maxStar=20&category=5&sort=0",
+                    "_blank");
+            });
         });
     }
 
