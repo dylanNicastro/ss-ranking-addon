@@ -57,18 +57,6 @@
         });
     }
 
-    async function modifyCounter() {
-        $.get("https://scoresaber.com/api/leaderboards?qualified=true&unique=true", function(res) {
-            $(".level-item").eq(1).find(".heading").text("Qualified Maps");
-            $(".level-item").eq(1).find(".title").text(res.leaderboards.length);
-            $(".level-item").eq(1).find("div").css("cursor", "pointer");
-            $(".level-item").eq(1).find("div").click(function() {
-                window.open("https://scoresaber.com/leaderboards?page=1&verified=1&ranked=0&qualified=1&minStar=0&maxStar=20&category=5&sort=0",
-                    "_blank");
-            });
-        });
-    }
-
     function initializeRequestsPage() {
         if (window.requestsInterval) {
             clearInterval(window.requestsInterval);
@@ -80,7 +68,6 @@
                 modifyRequests();
                 addHideButton();
                 checkDownvotedAreHidden();
-                modifyCounter();
             }
         }, 500);
     }
