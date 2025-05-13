@@ -30,7 +30,7 @@
                 let rtUpvotes = parseInt($(this).find(".rt_upvotes").text());
                 let difficultyCount = parseInt($(this).find(".diffs_created_at b").first().text());
                 let required = 3 - Math.floor(rtUpvotes/difficultyCount);
-                let msg = required === 0 ? "<b>No votes required! Ready for qualification!</b>" : `${required} RT member${required === 1 ? "" : "s"} required`;
+                let msg = (required <= 0) ? "<b>No votes required! Ready for qualification!</b>" : `${required} RT member${required === 1 ? "" : "s"} required`;
                 $(this).find(".song-info").append(`<p class='status-message'>${msg}</p>`);
             }
         });
